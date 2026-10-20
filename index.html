@@ -724,32 +724,66 @@
         <div id="view-cr-upload-new" class="view-section" style="display: none;">
           <div class="form-box" style="max-width: 800px; margin: 0 auto;">
             <h2 style="color: var(--accent-red); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
-              <i class="fas fa-cloud-upload-alt"></i> Upload Final CR (Approved Valuations)
+              <i class="fas fa-cloud-upload-alt"></i> Upload Final CR
             </h2>
-            
-            <label style="color: #0d6efd;">🔍 Search by Vehicle Number or Reference No</label>
-            <input type="text" id="cr_search_input" list="pending_cr_list" class="admin-input" placeholder="Type Vehicle No... (e.g., WP CAB-1234)" onchange="loadCRDetails()">
-            <datalist id="pending_cr_list"></datalist>
 
-            <!-- Details Section -->
-            <div id="cr_details_box" style="display:none; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:20px;">
-              <h4 style="margin-top:0; color:#333; margin-bottom:15px; border-bottom:1px solid #ccc; padding-bottom:5px;">Valuation Details</h4>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <div><label>Reference No:</label> <strong id="lbl_cr_ref" style="color:#c62828;"></strong></div>
-                <div><label>Vehicle No:</label> <strong id="lbl_cr_veh"></strong></div>
-                <div><label>Make & Model:</label> <strong id="lbl_cr_make"></strong></div>
-                <div><label>Approved Date:</label> <strong id="lbl_cr_appdate"></strong></div>
-                <div><label>Request Branch:</label> <strong id="lbl_cr_branch"></strong></div>
-                <div><label>Request User:</label> <strong id="lbl_cr_user"></strong></div>
+            <!-- Option Toggle Buttons -->
+            <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+              <button type="button" id="btn_cr_mode_val" onclick="switchCRUploadMode('valuation')" style="flex: 1; padding: 12px; border: 2px solid #0d6efd; background: #0d6efd; color: #fff; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s;">
+                <i class="fas fa-check-circle"></i> From Approved Valuations
+              </button>
+              <button type="button" id="btn_cr_mode_direct" onclick="switchCRUploadMode('direct')" style="flex: 1; padding: 12px; border: 2px solid #0d6efd; background: #fff; color: #0d6efd; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s;">
+                <i class="fas fa-file-medical"></i> Direct / Unregistered CR Upload
+              </button>
+            </div>
+            
+            <!-- MODE 1: From Approved Valuations -->
+            <div id="cr_mode_valuation_box">
+              <label style="color: #0d6efd;">🔍 Search by Vehicle Number or Reference No</label>
+              <input type="text" id="cr_search_input" list="pending_cr_list" class="admin-input" placeholder="Type Vehicle No... (e.g., WP CAB-1234)" onchange="loadCRDetails()">
+              <datalist id="pending_cr_list"></datalist>
+
+              <!-- Details Section -->
+              <div id="cr_details_box" style="display:none; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:20px;">
+                <h4 style="margin-top:0; color:#333; margin-bottom:15px; border-bottom:1px solid #ccc; padding-bottom:5px;">Valuation Details</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                  <div><label>Reference No:</label> <strong id="lbl_cr_ref" style="color:#c62828;"></strong></div>
+                  <div><label>Vehicle No:</label> <strong id="lbl_cr_veh"></strong></div>
+                  <div><label>Make & Model:</label> <strong id="lbl_cr_make"></strong></div>
+                  <div><label>Approved Date:</label> <strong id="lbl_cr_appdate"></strong></div>
+                  <div><label>Request Branch:</label> <strong id="lbl_cr_branch"></strong></div>
+                  <div><label>Request User:</label> <strong id="lbl_cr_user"></strong></div>
+                </div>
+                <input type="hidden" id="cr_row_index">
               </div>
-              <input type="hidden" id="cr_row_index">
+
+              <!-- Upload Section -->
+              <div id="cr_upload_section" style="display:none;">
+                <label>Upload Final CR Document (PDF or Image) *</label>
+                <input type="file" id="final_cr_file" accept=".pdf, image/*" class="admin-input">
+                <button class="btn-submit" id="crSubmitBtn" onclick="submitFinalCR()">Upload & Save CR</button>
+              </div>
             </div>
 
-            <!-- Upload Section -->
-            <div id="cr_upload_section" style="display:none;">
+            <!-- MODE 2: Direct / Unregistered CR Upload -->
+            <div id="cr_mode_direct_box" style="display: none;">
+              <div style="background: #fff8e1; border-left: 4px solid #f39c12; padding: 12px 15px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; color: #664d03;">
+                <i class="fas fa-info-circle"></i> Use this option to upload CR documents for <strong>Unregistered Vehicles</strong> or vehicles without a prior Valuation record.
+              </div>
+
+              <label>Facility Number *</label>
+              <input type="text" id="direct_cr_facility" class="admin-input" placeholder="Enter Facility Number...">
+
+              <label>Vehicle No / Chassis No (Unregistered) *</label>
+              <input type="text" id="direct_cr_veh" class="admin-input" placeholder="Ex: WP CAB-1234 or Unregistered Chassis No...">
+
+              <label>Remarks</label>
+              <textarea id="direct_cr_remarks" class="admin-input" rows="2" placeholder="Add any remarks (optional)..."></textarea>
+
               <label>Upload Final CR Document (PDF or Image) *</label>
-              <input type="file" id="final_cr_file" accept=".pdf, image/*" class="admin-input">
-              <button class="btn-submit" id="crSubmitBtn" onclick="submitFinalCR()">Upload & Save CR</button>
+              <input type="file" id="direct_cr_file" accept=".pdf, image/*" class="admin-input">
+
+              <button class="btn-submit" id="directCrSubmitBtn" onclick="submitDirectCR()">Upload & Save Direct CR</button>
             </div>
           </div>
         </div>
@@ -2340,6 +2374,96 @@
     function clearCourierFilters() { document.getElementById("courierFromDate").value = ""; document.getElementById("courierToDate").value = ""; document.getElementById("courierSearch").value = ""; document.getElementById("courierStatusFilter").value = "Pending"; filterCourierTable(); }  
     
     var globalPendingCR = [];
+
+    function switchCRUploadMode(mode) {
+      var valBox = document.getElementById('cr_mode_valuation_box');
+      var dirBox = document.getElementById('cr_mode_direct_box');
+      var btnVal = document.getElementById('btn_cr_mode_val');
+      var btnDir = document.getElementById('btn_cr_mode_direct');
+
+      if (mode === 'direct') {
+        valBox.style.display = 'none';
+        dirBox.style.display = 'block';
+        btnDir.style.background = '#0d6efd';
+        btnDir.style.color = '#fff';
+        btnVal.style.background = '#fff';
+        btnVal.style.color = '#0d6efd';
+      } else {
+        valBox.style.display = 'block';
+        dirBox.style.display = 'none';
+        btnVal.style.background = '#0d6efd';
+        btnVal.style.color = '#fff';
+        btnDir.style.background = '#fff';
+        btnDir.style.color = '#0d6efd';
+      }
+    }
+
+    async function submitDirectCR() {
+      var facilityNo = document.getElementById('direct_cr_facility').value.trim();
+      var vehNo = document.getElementById('direct_cr_veh').value.trim();
+      var remarks = document.getElementById('direct_cr_remarks').value.trim();
+      var fileInput = document.getElementById('direct_cr_file');
+
+      if (!facilityNo || !vehNo) {
+        return Swal.fire("Required", "Please enter both Facility Number and Vehicle No!", "warning");
+      }
+      if (fileInput.files.length === 0) {
+        return Swal.fire("Required", "Please select a CR document to upload!", "warning");
+      }
+
+      var btn = document.getElementById('directCrSubmitBtn');
+      btn.disabled = true;
+      btn.innerText = "Processing File... ⏳";
+
+      try {
+        let f = fileInput.files[0];
+        let base64Str, typeStr, nameStr;
+
+        if (f.type === "application/pdf") {
+          btn.innerText = "Applying Seal to PDF... ⏳";
+          base64Str = await watermarkPDF(f);
+          typeStr = 'application/pdf';
+          nameStr = f.name;
+        } else {
+          btn.innerText = "Applying Seal to Image... ⏳";
+          let compressed = await compressAndWatermarkImage(f, 1000, 0.7);
+          base64Str = compressed.data;
+          typeStr = compressed.type;
+          nameStr = compressed.name;
+        }
+
+        btn.innerText = "Uploading to Drive & Saving to Sheet... 🚀";
+
+        var payload = {
+          company: currentUser.company,
+          branch: currentUser.branch,
+          uploadedBy: currentUser.user,
+          email: currentUser.email,
+          facilityNo: facilityNo,
+          vehNo: vehNo,
+          remarks: remarks,
+          fileData: { base64: base64Str, type: typeStr, name: nameStr }
+        };
+
+        const serverRes = await apiCall('uploadDirectCR', payload);
+
+        if (serverRes.success) {
+          Swal.fire("Success", "Direct CR Uploaded Successfully!", "success");
+          document.getElementById('direct_cr_facility').value = "";
+          document.getElementById('direct_cr_veh').value = "";
+          document.getElementById('direct_cr_remarks').value = "";
+          document.getElementById('direct_cr_file').value = "";
+          loadDashboardStats();
+        } else {
+          Swal.fire("Error", serverRes.error || "Upload failed", "error");
+        }
+      } catch (error) {
+        Swal.fire("Error", error.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Upload & Save Direct CR";
+      }
+    }
 
     async function loadPendingCRList() {
       try {
