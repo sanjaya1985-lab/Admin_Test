@@ -2211,24 +2211,39 @@
     async function getSealImageBase64() {
       const canvas = document.createElement('canvas');
       canvas.width = 800;
-      canvas.height = 300;
+      canvas.height = 350; // Text එක වැඩි වන නිසා Canvas උස ටිකක් වැඩි කළා
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(220, 53, 69, 0.4)"; 
-      ctx.font = "bold 32px sans-serif";
+      
+      ctx.fillStyle = "rgba(220, 53, 69, 0.45)"; // පාට ටිකක් පැහැදිලි වෙන්න Opacity එක වැඩි කළා
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate(-Math.PI / 8); 
-      ctx.strokeStyle = "rgba(220, 53, 69, 0.4)";
+
+      // ෂේප් එක (Box)
+      ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
       ctx.lineWidth = 4;
-      ctx.strokeRect(-360, -80, 720, 170);
-      ctx.fillText("මෙය වාහනය ලියාපදිංචි සහතිකයේ සත්‍ය පිටපතකි.", 0, -35);
-      ctx.fillText("අදායම් බලපත්‍රය ලබාගැනීමට /", 0, 10);
-      ctx.fillText("දුම් වාර්තාව ලබාගැනීමට පමණි", 0, 50);
+      ctx.strokeRect(-370, -100, 740, 200);
+
+      // පේළි 1: මුල් වචන ටික
+      ctx.font = "bold 28px sans-serif";
+      ctx.fillText("මෙය වාහනය ලියාපදිංචි සහතිකයේ සත්‍ය පිටපතකි.", 0, -55);
+      
+      // පේළි 2: අදායම් බලපත්‍රය / දුම් වාර්තාව
+      ctx.fillText("අදායම් බලපත්‍රය ලබාගැනීමට / දුම් වාර්තාව ලබාගැනීමට පමණි", 0, -10);
+
+      // පේළි 3: අලුතින් ඉල්ලපු දිනය සහ වැලිඩිටි එක (මෙය ටිකක් Highlight කර ඇත)
+      var currentDateStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD 형식
+      ctx.font = "bold 30px sans-serif";
+      ctx.fillStyle = "rgba(200, 0, 0, 0.65)"; // තව ටිකක් තදින් පෙන්වීමට
+      ctx.fillText("මසක් සඳහා පමණක් වලංගු වේ", 0, 35);
+      
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillText("නිකුත්කරු දිනය: " + currentDateStr, 0, 75);
+
       return canvas.toDataURL('image/png');
     }
-
     async function watermarkPDF(file) {
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
