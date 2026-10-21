@@ -2343,7 +2343,7 @@
       let dateFontSize = Math.max(12, Math.floor(fontSize * 0.82));
       ctx.fillStyle = "rgba(183, 28, 28, 0.92)";
       ctx.font = "900 " + dateFontSize + "px sans-serif";
-      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, 0, barY + (barH / 2), barW * 0.96);
+      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කල දිනය: ${issueDate}`, 0, barY + (barH / 2), barW * 0.96);
       ctx.restore();
     }
 
@@ -2742,7 +2742,7 @@
           document.body.removeChild(a);
         } else {
           document.getElementById('cr_prev_title').innerText = `CR Document - ${vehNo}`;
-          document.getElementById('cr_prev_subtitle').innerText = `මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${todayDate}`;
+          document.getElementById('cr_prev_subtitle').innerText = `මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කල දිනය: ${todayDate}`;
           const dlBtn = document.getElementById('cr_prev_download_btn');
           dlBtn.href = currentCRBlobUrl;
           dlBtn.download = downloadName;
