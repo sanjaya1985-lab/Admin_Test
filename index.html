@@ -804,6 +804,32 @@
           <h2 style="color: var(--accent-red); border-bottom: 2px solid #eee; padding-bottom: 10px;">CR Upload History & Summary</h2>
           <button onclick="loadCRHistory()" style="padding: 8px 15px; background: #0d6efd; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom:15px;">Refresh Report</button>
           
+          <div style="display:flex; gap:15px; margin-bottom:20px; align-items:flex-end; background:#fff; padding:15px; border-radius:8px; border:1px solid #ddd;">
+            <div style="flex:1;">
+              <label style="font-size:12px;font-weight:bold;color:#555;">From Date</label>
+              <input type="date" id="crFromDate" onchange="filterCRHistoryTable()" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; outline:none;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:12px;font-weight:bold;color:#555;">To Date</label>
+              <input type="date" id="crToDate" onchange="filterCRHistoryTable()" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; outline:none;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:12px;font-weight:bold;color:#555;">Upload Type</label>
+              <select id="crTypeFilter" onchange="filterCRHistoryTable()" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; outline:none;">
+                <option value="">All Uploads</option>
+                <option value="valuation">Valuation CR</option>
+                <option value="direct">Direct / Unregistered CR</option>
+              </select>
+            </div>
+            <div style="flex:1.5;">
+              <label style="font-size:12px;font-weight:bold;color:#555;">Search (Vehicle / Ref / Facility / User)</label>
+              <input type="text" id="crHistorySearch" onkeyup="filterCRHistoryTable()" placeholder="Search Vehicle No, Ref/Facility No, User..." style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; outline:none;">
+            </div>
+            <div>
+              <button onclick="clearCRHistoryFilters()" style="background:#6c757d; color:#fff; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Clear</button>
+            </div>
+          </div>
+
           <div class="table-container">
             <table id="crHistoryTable" class="blue-header">
               <thead><tr><th>Company</th><th>Uploaded Date</th><th>Ref No</th><th>Vehicle No</th><th>Make & Model</th><th>Uploaded By</th><th>CR Document</th></tr></thead>
@@ -2121,7 +2147,7 @@
       if(viewId === 'rmv-admin') clearTbody("rmvTable");
       if(viewId === 'val-admin') { document.getElementById("admin-req-list").innerHTML = "<div style='text-align:center; padding:20px; background:#fff; border-radius:8px;'>Please click 'Refresh List' to load pending approvals.</div>"; }
       if(viewId === 'val-history') clearTbody("valHistoryTable");
-      if(viewId === 'cr-upload-history') clearTbody("crHistoryTable");
+      if(viewId === 'cr-upload-history') { crHistoryLoaded = false; clearTbody("crHistoryTable"); }
       if(viewId === 'cr-upload-pending') clearTbody("crPendingTable");
     }
 
@@ -2277,7 +2303,7 @@
 
       ctx.fillStyle = "rgba(183, 28, 28, 0.92)";
       ctx.font = "900 25px sans-serif";
-      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කල දිනය: ${issueDate}`, 0, 104, 690);
+      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, 0, 104, 690);
 
       return canvas.toDataURL('image/png');
     }
@@ -2343,7 +2369,7 @@
       let dateFontSize = Math.max(12, Math.floor(fontSize * 0.82));
       ctx.fillStyle = "rgba(183, 28, 28, 0.92)";
       ctx.font = "900 " + dateFontSize + "px sans-serif";
-      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කල දිනය: ${issueDate}`, 0, barY + (barH / 2), barW * 0.96);
+      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, 0, barY + (barH / 2), barW * 0.96);
       ctx.restore();
     }
 
@@ -2673,7 +2699,7 @@
 
       Swal.fire({
         title: 'Preparing CR Document...',
-        html: `නිකුත්කල දිනය (<b>${todayDate}</b>) Watermark එකට එක් කරමින්... ⏳`,
+        html: `නිකුත්කරු දිනය (<b>${todayDate}</b>) Watermark එකට එක් කරමින්... ⏳`,
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
       });
@@ -2742,7 +2768,7 @@
           document.body.removeChild(a);
         } else {
           document.getElementById('cr_prev_title').innerText = `CR Document - ${vehNo}`;
-          document.getElementById('cr_prev_subtitle').innerText = `මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කල දිනය: ${todayDate}`;
+          document.getElementById('cr_prev_subtitle').innerText = `මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${todayDate}`;
           const dlBtn = document.getElementById('cr_prev_download_btn');
           dlBtn.href = currentCRBlobUrl;
           dlBtn.download = downloadName;
@@ -2767,14 +2793,20 @@
       }
     }
 
+    var crHistoryLoaded = false;
+    var crHistoryLoading = false;
+
     async function loadCRHistory() {
       var tbody = document.querySelector("#crHistoryTable tbody");
       if(!tbody) return;
+      crHistoryLoading = true;
       tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Loading data...</td></tr>";
       
       try {
         const res = await apiCall('getCRUploadHistory', { role: currentUser.role, branch: currentUser.branch, email: currentUser.email }, 'GET');
         tbody.innerHTML = "";
+        crHistoryLoaded = true;
+        crHistoryLoading = false;
         if (!res.data || res.data.length === 0) {
           tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No CR Upload History found.</td></tr>";
           return;
@@ -2794,9 +2826,77 @@
             </div>`;
           tbody.innerHTML += `<tr><td><b style="color:#e67e22;">${r.company}</b></td><td>${r.uploadDate}</td><td><b>${r.refNo}</b></td><td><span style="color:#0d6efd;font-weight:bold;">${r.vehNo}</span></td><td>${r.makeModel}</td><td>${r.uploadedBy}</td><td>${fileLink}</td></tr>`;
         });
+
+        filterCRHistoryTable(true);
       } catch(e) {
+        crHistoryLoading = false;
         tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:red;'>Error Loading Report</td></tr>";
       }
+    }
+
+    function filterCRHistoryTable(skipAutoLoad) {
+      if (!skipAutoLoad && !crHistoryLoaded && !crHistoryLoading) {
+        loadCRHistory();
+        return;
+      }
+      var fDate = document.getElementById("crFromDate") ? document.getElementById("crFromDate").value : "";
+      var tDate = document.getElementById("crToDate") ? document.getElementById("crToDate").value : "";
+      var uType = document.getElementById("crTypeFilter") ? document.getElementById("crTypeFilter").value.toLowerCase() : "";
+      var search = document.getElementById("crHistorySearch") ? document.getElementById("crHistorySearch").value.toLowerCase().trim() : "";
+
+      var table = document.getElementById("crHistoryTable");
+      if (!table) return;
+      var tr = table.getElementsByTagName("tr");
+
+      for (var i = 1; i < tr.length; i++) {
+        var tds = tr[i].getElementsByTagName("td");
+        if (tds.length < 6) continue;
+
+        var tdComp = tds[0].innerText.toLowerCase();
+        var tdDateStr = (tds[1].textContent || tds[1].innerText).trim();
+        var tdRef = tds[2].innerText.toLowerCase();
+        var tdVeh = tds[3].innerText.toLowerCase();
+        var tdMake = tds[4].innerText.toLowerCase();
+        var tdUser = tds[5].innerText.toLowerCase();
+
+        var matchSearch = !search ||
+          tdVeh.indexOf(search) > -1 ||
+          tdRef.indexOf(search) > -1 ||
+          tdComp.indexOf(search) > -1 ||
+          tdMake.indexOf(search) > -1 ||
+          tdUser.indexOf(search) > -1;
+
+        var isDirect = tdRef.indexOf("(direct)") > -1 || tdMake.indexOf("direct cr") > -1;
+        var matchType = true;
+        if (uType === "direct") matchType = isDirect;
+        else if (uType === "valuation") matchType = !isDirect;
+
+        var matchDate = true;
+        var datePart = tdDateStr.split(" ")[0];
+        var rowDate = new Date(datePart);
+        if (!isNaN(rowDate.getTime())) {
+          if (fDate) {
+            var fromObj = new Date(fDate);
+            fromObj.setHours(0, 0, 0, 0);
+            if (rowDate < fromObj) matchDate = false;
+          }
+          if (tDate) {
+            var toObj = new Date(tDate);
+            toObj.setHours(23, 59, 59, 999);
+            if (rowDate > toObj) matchDate = false;
+          }
+        }
+
+        tr[i].style.display = (matchSearch && matchType && matchDate) ? "" : "none";
+      }
+    }
+
+    function clearCRHistoryFilters() {
+      if (document.getElementById("crFromDate")) document.getElementById("crFromDate").value = "";
+      if (document.getElementById("crToDate")) document.getElementById("crToDate").value = "";
+      if (document.getElementById("crTypeFilter")) document.getElementById("crTypeFilter").value = "";
+      if (document.getElementById("crHistorySearch")) document.getElementById("crHistorySearch").value = "";
+      if (crHistoryLoaded) filterCRHistoryTable(true);
     }
 
     async function loadPendingCRTable() {
