@@ -2271,8 +2271,8 @@
     async function getSealImageBase64(customDateStr, onlyDateBar = false) {
       const issueDate = getFormattedIssueDate(customDateStr);
       const canvas = document.createElement('canvas');
-      canvas.width = 860;
-      canvas.height = 460;
+      canvas.width = 1000;
+      canvas.height = 800;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -2281,29 +2281,33 @@
       ctx.textBaseline = "middle";
 
       if (!onlyDateBar) {
-        // Outer Seal Box
-        ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
+        // Outer Seal Box (matches original 3-line box: y = -80 to +90)
+        ctx.strokeStyle = "rgba(220, 53, 69, 0.40)";
         ctx.lineWidth = 4;
-        ctx.strokeRect(-370, -85, 740, 230);
+        ctx.strokeRect(-360, -80, 720, 170);
 
         // Standard 3 Watermark Lines
-        ctx.fillStyle = "rgba(220, 53, 69, 0.42)";
-        ctx.font = "bold 30px sans-serif";
-        ctx.fillText("මෙය වාහනය ලියාපදිංචි සහතිකයේ සත්‍ය පිටපතකි.", 0, -40, 700);
-        ctx.fillText("අදායම් බලපත්‍රය ලබාගැනීමට /", 0, 5, 700);
-        ctx.fillText("දුම් වාර්තාව ලබාගැනීමට පමණි", 0, 48, 700);
+        ctx.fillStyle = "rgba(220, 53, 69, 0.38)";
+        ctx.font = "bold 32px sans-serif";
+        ctx.fillText("මෙය වාහනය ලියාපදිංචි සහතිකයේ සත්‍ය පිටපතකි.", 0, -35);
+        ctx.fillText("අදායම් බලපත්‍රය ලබාගැනීමට /", 0, 10);
+        ctx.fillText("දුම් වාර්තාව ලබාගැනීමට පමණි", 0, 50);
+      } else {
+        // Moved further down (y = 170..218) and shifted left (offsetX = -85) so the right-side date never clips
+        const offsetX = -85;
+        const barW = 680;
+        const barY = 170;
+        const barH = 48;
+        ctx.fillStyle = "rgba(255, 245, 157, 0.20)";
+        ctx.fillRect(offsetX - (barW / 2), barY, barW, barH);
+        ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(offsetX - (barW / 2), barY, barW, barH);
+
+        ctx.fillStyle = "rgba(198, 40, 40, 0.48)";
+        ctx.font = "900 23px sans-serif";
+        ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, offsetX, barY + (barH / 2), barW - 20);
       }
-
-      // Highlighted & Bold 4th Line (Issue Date)
-      ctx.fillStyle = onlyDateBar ? "rgba(255, 243, 205, 0.96)" : "rgba(255, 235, 59, 0.55)";
-      ctx.fillRect(-355, 80, 710, 48);
-      ctx.strokeStyle = "rgba(198, 40, 40, 0.85)";
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(-355, 80, 710, 48);
-
-      ctx.fillStyle = "rgba(183, 28, 28, 0.92)";
-      ctx.font = "900 25px sans-serif";
-      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, 0, 104, 690);
 
       return canvas.toDataURL('image/png');
     }
@@ -2313,7 +2317,7 @@
       const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
       const sealDataUrl = await getSealImageBase64(customDateStr, false);
       const sealImage = await pdfDoc.embedPng(sealDataUrl);
-      const { width: sealWidth, height: sealHeight } = sealImage.scale(0.75); 
+      const { width: sealWidth, height: sealHeight } = sealImage.scale(0.8); 
       const pages = pdfDoc.getPages();
       for(let i = 0; i < pages.length; i++) {
          const page = pages[i];
@@ -2342,34 +2346,36 @@
       ctx.rotate(-Math.PI / 6);
 
       let boxW = fontSize * 23;
-      let boxH = fontSize * 7.2;
+      let boxH = fontSize * 4.8;
 
       if (!onlyDateBar) {
-        ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
+        // Outer Seal Box & Standard 3 Lines (y = -2.4*fontSize to +2.4*fontSize)
+        ctx.strokeStyle = "rgba(220, 53, 69, 0.40)";
         ctx.lineWidth = Math.max(2, Math.floor(fontSize / 8));
-        ctx.strokeRect(-boxW / 2, -fontSize * 2.8, boxW, boxH);
+        ctx.strokeRect(-boxW / 2, -fontSize * 2.4, boxW, boxH);
 
-        ctx.fillStyle = "rgba(220, 53, 69, 0.42)";
+        ctx.fillStyle = "rgba(220, 53, 69, 0.38)";
         ctx.font = "bold " + fontSize + "px sans-serif";
         ctx.fillText("මෙය වාහනය ලියාපදිංචි සහතිකයේ සත්‍ය පිටපතකි.", 0, -fontSize * 1.5, boxW * 0.94);
         ctx.fillText("අදායම් බලපත්‍රය ලබාගැනීමට /", 0, 0, boxW * 0.94);
         ctx.fillText("දුම් වාර්තාව ලබාගැනීමට පමණි", 0, fontSize * 1.4, boxW * 0.94);
+      } else {
+        // Moved further down (barY = fontSize * 4.5) and shifted left (offsetX = -fontSize * 3.2) so date never clips on right
+        let offsetX = -fontSize * 3.2;
+        let barW = fontSize * 21.5;
+        let barH = fontSize * 1.55;
+        let barY = fontSize * 4.5;
+        ctx.fillStyle = "rgba(255, 245, 157, 0.20)";
+        ctx.fillRect(offsetX - (barW / 2), barY, barW, barH);
+        ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
+        ctx.lineWidth = Math.max(1.5, Math.floor(fontSize / 10));
+        ctx.strokeRect(offsetX - (barW / 2), barY, barW, barH);
+
+        let dateFontSize = Math.max(11, Math.floor(fontSize * 0.76));
+        ctx.fillStyle = "rgba(198, 40, 40, 0.48)";
+        ctx.font = "900 " + dateFontSize + "px sans-serif";
+        ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, offsetX, barY + (barH / 2), barW * 0.95);
       }
-
-      // Highlighted & Bold Date Bar
-      let barW = boxW * 0.96;
-      let barH = fontSize * 1.55;
-      let barY = fontSize * 2.3;
-      ctx.fillStyle = onlyDateBar ? "rgba(255, 243, 205, 0.96)" : "rgba(255, 235, 59, 0.55)";
-      ctx.fillRect(-barW / 2, barY, barW, barH);
-      ctx.strokeStyle = "rgba(198, 40, 40, 0.85)";
-      ctx.lineWidth = Math.max(1.5, Math.floor(fontSize / 10));
-      ctx.strokeRect(-barW / 2, barY, barW, barH);
-
-      let dateFontSize = Math.max(12, Math.floor(fontSize * 0.82));
-      ctx.fillStyle = "rgba(183, 28, 28, 0.92)";
-      ctx.font = "900 " + dateFontSize + "px sans-serif";
-      ctx.fillText(`මසක් සඳහා පමණක් වලංගු වේ - නිකුත්කරු දිනය: ${issueDate}`, 0, barY + (barH / 2), barW * 0.96);
       ctx.restore();
     }
 
@@ -2720,7 +2726,7 @@
           const pdfDoc = await PDFLib.PDFDocument.load(rawBytes);
           const dateSealUrl = await getSealImageBase64(todayDate, true);
           const dateSealImg = await pdfDoc.embedPng(dateSealUrl);
-          const { width: sealWidth, height: sealHeight } = dateSealImg.scale(0.75);
+          const { width: sealWidth, height: sealHeight } = dateSealImg.scale(0.8);
 
           const pages = pdfDoc.getPages();
           for (let i = 0; i < pages.length; i++) {
