@@ -357,9 +357,9 @@
             <!-- Valuation Template Settings Card -->
             <div class="template-form-card" id="template-setup-card" style="display:none;">
               <h3><i class="fas fa-file-word"></i> Valuation Template Settings</h3>
-              <p style="font-size:13px; color:#666; margin-bottom:15px;">Set a unique Google Doc template URL for each company.</p>
+              <p style="font-size:13px; color:#666; margin-bottom:15px;">Set a unique Google Doc template  for each company.</p>
               <input type="text" id="tpl-company" list="comp-list" class="admin-input" placeholder="Select Company Name...">
-              <input type="text" id="tpl-url" class="admin-input" placeholder="Google Doc Template URL or ID">
+              <input type="text" id="tpl-" class="admin-input" placeholder="Google Doc Template  or ID">
               <button class="btn-submit" style="background:#6f42c1;" onclick="saveTemplateAdmin()">Save Template</button>
             </div>
 
@@ -944,7 +944,7 @@
 
   <script>
     // ====== API CONFIGURATION ======
-    const API_URL = "https://script.google.com/macros/s/AKfycbxjYfv0vaxxAc9QTnLodT7l6hGhs7qPXpbPbyXEgH_pjMDRAGcnr5Fp6pWU6V-8I5Pz/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwbt1MVKvbX6C35J24T-1tG4Du01tap6Ep3AXsOVRzMs22tmGxsgMHGtz21k9j_AEJ1Pg/exec";
 
     async function apiCall(action, payload = {}, method = 'POST') {
       try {
